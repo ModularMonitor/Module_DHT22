@@ -1,12 +1,8 @@
 #include "DHT.h"
 
-#include <FreeRTOS.h>
-#include <task.h>
-#include <driver/gpio.h>
-
 class mDHT {
     TaskHandle_t m_thr = nullptr;
-    const gpio_num_t m_pin;
+    const int m_pin;
     float m_temp{}, m_hum{};
 
     void _async();
@@ -16,7 +12,7 @@ public:
     void operator=(const mDHT&) = delete;
     void operator=(mDHT&&) = delete;
 
-    mDHT(const gpio_num_t);
+    mDHT(const int);
     ~mDHT();
 
     float get_temperature() const;
@@ -37,7 +33,7 @@ inline void mDHT::_async()
     vTaskDelete(NULL);
 }
 
-inline mDHT::mDHT(const gpio_num_t pin)
+inline mDHT::mDHT(const int pin)
     : m_pin(pin)
 {
     xTaskCreate([](void* thus){((mDHT*)thus)->_async();}, "ASYNC_DHT", 2048, this, tskIDLE_PRIORITY, &m_thr);

@@ -1,23 +1,38 @@
+#define ESP32C3_M5_KIT
+
 #include <Arduino.h>
+#include <Wire.h>
 #include "mdht.h"
 #include "Serial/package.h"
 
 mDHT* dht = nullptr;
+const auto this_device = CustomSerial::device_id::DHT22_SENSOR;
 
-void setup() {
-  Serial.begin(9600);
-  while(!Serial){}
+void send_to_wire_on_request();
 
-	//MMSerial::setup(MMSerial::device_id::DHT22);
+void setup()
+{
+  Serial.begin(115200);
+  while(!Serial);
 
-  dht = new mDHT(GPIO_NUM_8);
+  Serial.printf("Begin!\n");
+
+  CustomSerial::begin_slave(this_device, send_to_wire_on_request);
+  dht = new mDHT(GPIO_NUM_14);
 }
 
-void loop() {
-  delay(1025);
-  
-  MMSerial::send_package("/dht22/temperature", dht->get_temperature());
-  MMSerial::send_package("/dht22/humidity", dht->get_humidity());
+void loop()
+{
+  delay(2000);
+  Serial.printf("T=%.2fC; H=%.2f%%\n", dht->get_temperature(), dht->get_humidity());
+}
 
-  Serial.printf("READ: %.2fC %.2f%%\n", dht->get_temperature(), dht->get_humidity());
+void send_to_wire_on_request()
+{  
+  CustomSerial::command_package cmd(this_device, 
+    "/temperature", dht->get_temperature(),
+    "/humidity", dht->get_humidity()
+  );
+
+  CustomSerial::write(cmd);
 }
