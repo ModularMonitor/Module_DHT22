@@ -1,4 +1,5 @@
-#include "DHT.h"
+#include "Adafruit_Sensor/Adafruit_Sensor.h"
+#include "DHT-sensor-library/DHT.h"
 
 class mDHT {
     TaskHandle_t m_thr = nullptr;

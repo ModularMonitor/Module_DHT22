@@ -1,3 +1,9 @@
 [submodule "Serial"]
 	path = Serial
 	url = https://github.com/ModularMonitor/lib-Serial
+[submodule "DHT-sensor-library"]
+	path = DHT-sensor-library
+	url = https://github.com/ModularMonitor/lib-DHT-sensor-library
+[submodule "Adafruit_Sensor"]
+	path = Adafruit_Sensor
+	url = https://github.com/ModularMonitor/lib-Adafruit_Sensor
