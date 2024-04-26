@@ -8,15 +8,20 @@ constexpr int port_DHT22 = GPIO_NUM_14;
 
 const auto this_device = CustomSerial::device_id::DHT22_SENSOR;
 
+// request event call:
 void send_to_wire_on_request();
 
 void setup()
 {
-  CustomSerial::begin_slave(this_device, send_to_wire_on_request);
-  dht = new mDHT(port_DHT22);
+    Serial.begin(115200);
+    while(!Serial);
+    
+    CustomSerial::set_logging(Serial);
+    CustomSerial::print_info();
+    CustomSerial::begin_slave(this_device, send_to_wire_on_request);
+    
+    dht = new mDHT(port_DHT22);
 }
-
-void loop() { vTaskDelete(NULL); }
 
 void send_to_wire_on_request()
 {
@@ -27,3 +32,6 @@ void send_to_wire_on_request()
 
   CustomSerial::write(cmd);
 }
+
+// unused
+void loop() { vTaskDelete(NULL); }
