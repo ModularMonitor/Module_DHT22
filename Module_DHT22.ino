@@ -1,36 +1,63 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "mdht.h"
-#include "Serial/package.h"
+#include "Serial/packaging.h"
 
+using namespace CS;
+
+PackagedWired* wire;
 mDHT* dht = nullptr;
 constexpr int port_DHT22 = GPIO_NUM_14;
+const auto this_device = device_id::DHT22_SENSOR;
 
-const auto this_device = CustomSerial::device_id::DHT22_SENSOR;
-
-// request event call:
-void send_to_wire_on_request();
+void callback(void*, const uint8_t, const char*, const uint8_t);
 
 void setup()
 {
     Serial.begin(115200);
     while(!Serial);
     
-    CustomSerial::set_logging(Serial);
-    CustomSerial::print_info();
-    CustomSerial::begin_slave(this_device, send_to_wire_on_request);
+    Serial.printf("Starting SLAVE\n");
+    wire = new PackagedWired(config()
+        .set_slave(this_device)
+        .set_slave_callback(callback)
+        .set_led(2)
+    );
     
     dht = new mDHT(port_DHT22);
 }
 
-void send_to_wire_on_request()
+void callback(void* rw, const uint8_t expects, const char* received, const uint8_t length)
 {
-  CustomSerial::command_package cmd(this_device, 
-    "/temperature", dht->get_temperature(),
-    "/humidity", dht->get_humidity()
-  );
-
-  CustomSerial::write(cmd);
+    if (length != sizeof(Requester)) return;
+    
+    PackagedWired& w = *(PackagedWired*) rw;
+    Requester req(received);
+    
+    switch(req.get_offset()) {
+    case 0:
+    {
+        const float val = dht->get_temperature();
+        Command cmd("/dht/temperature", val);
+        w.slave_reply_from_callback(cmd);
+        //Serial.printf("Received request {%zu}\nReplying with temperature %.3f\n", req.get_offset(), val);
+    }
+    break;
+    case 1:
+    {
+        const float val = dht->get_humidity();
+        Command cmd("/dht/humidity", val);
+        w.slave_reply_from_callback(cmd);
+        //Serial.printf("Received request {%zu}\nReplying with humidity %.3f\n", req.get_offset(), val);
+    }
+    break;
+    default:
+    {
+        Command cmd; // invalid
+        w.slave_reply_from_callback(cmd);
+        //Serial.printf("Received request {%zu}\nConsidered invalid!\n", req.get_offset());
+    }
+    }
 }
 
 // unused
