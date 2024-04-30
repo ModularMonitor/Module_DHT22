@@ -18,13 +18,14 @@ void setup()
     while(!Serial);
     
     Serial.printf("Starting SLAVE\n");
+    
+    dht = new mDHT(port_DHT22);
+    
     wire = new PackagedWired(config()
         .set_slave(this_device)
         .set_slave_callback(callback)
         .set_led(2)
     );
-    
-    dht = new mDHT(port_DHT22);
 }
 
 void callback(void* rw, const uint8_t expects, const char* received, const uint8_t length)

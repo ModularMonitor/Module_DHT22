@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Adafruit_Sensor/Adafruit_Sensor.h"
 #include "DHT-sensor-library/DHT.h"
 
