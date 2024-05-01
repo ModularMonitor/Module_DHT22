@@ -9,6 +9,8 @@
 class mDHT : protected SelfThreadable {
     const int m_pin;
     float m_temp{}, m_hum{};
+    
+    bool m_has_new_data = false;
 
     void async() {
         DHT dht(m_pin, DHT22);
@@ -18,23 +20,18 @@ class mDHT : protected SelfThreadable {
             delay(2050);
             m_temp = dht.readTemperature();
             m_hum = dht.readHumidity();
+            m_has_new_data = true;
         }
 
         vTaskDelete(NULL);
     }
 public:
-    mDHT(const int pin) : SelfThreadable("ASYNC_DHT"), m_pin(pin) { async_start(); }
+    mDHT(const int pin) : SelfThreadable("ASYNC"), m_pin(pin) { async_start(); }
 
-    float get_temperature() const;
-    float get_humidity() const;
+    float get_temperature() const { return m_temp; }
+    float get_humidity() const { return m_hum; }
+    
+    bool has_issues() const { return false; }
+    bool has_new_data_autoreset() { bool had = m_has_new_data; m_has_new_data = false; return had; }
 };
 
-inline float mDHT::get_temperature() const
-{
-    return m_temp;
-}
-
-inline float mDHT::get_humidity() const
-{
-    return m_hum;
-}
